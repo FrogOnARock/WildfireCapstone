@@ -1,0 +1,23 @@
+[project]
+name = "Wildfire_1"
+version = "0.1.0"
+description = "This is a frontend application designed to augment and additional features from WDFIS to an interactive map."
+authors = [
+    {name = "FrogOnARock",email = "mac2rock@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+pckages = [{include = "wildfire_1"}]
+requires-python = ">=3.11"
+dependencies = [
+    "pandas (>=2.2.3,<3.0.0)",
+    "geopandas (>=1.1.0,<2.0.0)",
+    "folium (>=0.19.7,<0.20.0)",
+    "shapely (>=2.1.1,<3.0.0)"
+]
+
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
