@@ -227,6 +227,7 @@ Represents _detected thermal anomalies (hotspots) from satellite observations_, 
 | `cfb`          | `REAL`             | Crown fraction burned (%)                |
 | `cbh`          | `REAL`             | Crown base height                        |
 | `cfl`          | `REAL`             | Crown fire length                        |
+| `sfl`          | `REAL`             | Surface fire length                      |
 | `pcuring`      | `REAL`             | Percent curing                           |
 | `pconif`       | `REAL`             | Percent conifer                          |
 | `cfactor`      | `REAL`             | Crown factor                             |
@@ -239,6 +240,7 @@ Represents _detected thermal anomalies (hotspots) from satellite observations_, 
 | `polyid`       | `TEXT`             | Associated polygon ID                    |
 | `times_burned` | `INTEGER`          | Historical burn count                    |
 | `age`          | `INTEGER`          | Age in hours since detection             |
+| `frp`          | `REAL`             | Fire Radiative Power (MW)                |
 | `geom`         | `GEOMETRY(POINT)`  | Location geometry                        |
 
 **Indexes**: `GIST(geom)`, `rep_date`
