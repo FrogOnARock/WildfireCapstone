@@ -65,15 +65,15 @@ Represents _historical wildfire records_ including year-to-date and previous yea
 
 Represents _estimated perimeters of ongoing wildfires_ with temporal snapshots.
 
-| Column             | Type                   | Description                                  |
-|--------------------|------------------------|----------------------------------------------|
-| `id`               | `UUID`                 | Unique ID for a perimeter estimate           |
-| `acquisition_date`| `DATE`                 | Pull date / perimeter estimate date          |
-| `firstdate`        | `TIMESTAMPTZ`          | First hotspot within this perimeter          |
-| `lastdate`         | `TIMESTAMPTZ`          | Most recent hotspot within this perimeter    |
-| `hcount`           | `INTEGER`              | Number of hotspots detected in area          |
-| `area`             | `REAL`                 | Area of the perimeter (hectares)             |
-| `geom`             | `GEOMETRY(POLYGON)`    | Fire perimeter polygon                       |
+| Column             | Type                   | Description                                        |
+|--------------------|------------------------|----------------------------------------------------|
+| `id`               | `UUID`                 | Unique ID for a perimeter estimate                 |
+| `acquisition_date`| `DATE`                 | Pull date / perimeter estimate date                |
+| `firstdate`        | `TIMESTAMPTZ`          | First date for hotspot within this perimeter       |
+| `lastdate`         | `TIMESTAMPTZ`          | Most recent date for hotspot within this perimeter |
+| `hcount`           | `INTEGER`              | Number of hotspots detected in area                |
+| `area`             | `REAL`                 | Area of the perimeter (hectares)                   |
+| `geom`             | `GEOMETRY(POLYGON)`    | Fire perimeter polygon                             |
 
 **Indexes**: `GIST(geom)`, `acquisition_date`
 
@@ -154,7 +154,7 @@ Represents _forecast reports from physical meteorological stations (observed or 
 
 ---
 
-## `forecast_weather_stations_forecast`
+## `reporting_weather_stations_forecast`
 
 Represents _interpolated fire weather forecasts from the SCRIBE model_, estimating values across the landscape and at virtual stations.
 
