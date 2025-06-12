@@ -1,0 +1,6 @@
+/.venv
+.env
+pyproject.toml
+poetry.lock
+/Test
+.gitignore
