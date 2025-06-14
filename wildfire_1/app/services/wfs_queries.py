@@ -21,15 +21,28 @@ def get_active_fires(max_date: str, min_date:str):
     if max_date is None:
         max_date = "9999-12-31"
 
+    print(max_date)
+    print(min_date)
+
     with SessionLocal() as session:
         result = session.execute(
             text("""
-                SELECT *
+                SELECT ST_AsGeoJSON(geometry) AS geometry,
+                    id,
+                    lat,
+                    lon,
+                    firename,
+                    hectares,
+                    agency,
+                    stage_of_control,
+                    response_type,
+                    startdate
                 FROM active_fires
                 WHERE startdate > :min_date and startdate < :max_date
             """), {"max_date": max_date, "min_date": min_date}
         )
-        return [dict(row) for row in result]
+
+        return result.mappings().all()
 
 
 def get_active_fire_by_id(fire_id: str):
@@ -41,7 +54,7 @@ def get_active_fire_by_id(fire_id: str):
                 WHERE id = :fire_id
             """), {"fire_id": fire_id}
         )
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 
 
@@ -72,7 +85,7 @@ def get_fire_danger_by_date(date: str):
                 WHERE acq_date = :date
             """), {"date": date}
         )
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 
 '''
@@ -102,7 +115,7 @@ def get_fire_history_by_date(max_date: str, min_date: str):
             """), {"max_date": max_date, "min_date": min_date}
         )
 
-    return [dict(row) for row in result]
+    return result.mappings().all()
 
 def get_fire_history_by_cause(cause: str):
 
@@ -143,7 +156,7 @@ def get_fire_history_by_cause(cause: str):
                 WHERE cause in :cause
             """), {"cause": cause_list}
         )
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 def get_fire_history_by_response(response: str):
 
@@ -154,11 +167,11 @@ def get_fire_history_by_response(response: str):
             text("""
                 SELECT *
                 FROM fire_history
-                WHERE response_type = :response_type
+                WHERE response_type = :response
             """), {"response": response}
         )
 
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 def get_fire_history_by_hectares(max_hectares: float, min_hectares: float):
     with SessionLocal() as session:
@@ -167,10 +180,10 @@ def get_fire_history_by_hectares(max_hectares: float, min_hectares: float):
                 SELECT *
                 FROM fire_history
                 WHERE hectares > :min_hectares and hectares < :max_hectares
-            """)
-        ), {"max_hectares": max_hectares, "min_hectares": min_hectares}
+            """), {"max_hectares": max_hectares, "min_hectares": min_hectares}
+        )
 
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 
 '''
@@ -198,7 +211,7 @@ def get_perimeter_by_date(start_date: str, end_date: str):
                  """), {"max_date": start_date, "min_date": end_date}
         )
 
-    return [dict(row) for row in result]
+    return result.mappings().all()
 
 def get_perimeter_by_hcount(min_hcount: int):
 
@@ -211,7 +224,7 @@ def get_perimeter_by_hcount(min_hcount: int):
             """), {"min_hcount": min_hcount}
         )
 
-    return [dict(row) for row in result]
+    return result.mappings().all()
 
 def get_perimeter_by_area(min_area: float):
 
@@ -224,7 +237,7 @@ def get_perimeter_by_area(min_area: float):
             """), {"min_area": min_area}
         )
 
-    return [dict(row) for row in result]
+    return result.mappings().all()
 
 
 '''
@@ -245,13 +258,14 @@ def get_forecast_stations_by_date(date: str):
             """), {"date": date}
         )
 
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 def get_forecast_stations_by_agency(agency_list: list):
 
     #Possible values: MoFPB, AESRD, SERM, SOPFEU, NT, MBCONS, NWS, mSC, MoFPB
 
-    assert agency_list is object, "Agency list must be a list"
+    if not isinstance(agency_list, list):
+        raise ValueError("agency_list must be a list")
 
     with SessionLocal() as session:
         result = session.execute(
@@ -262,7 +276,7 @@ def get_forecast_stations_by_agency(agency_list: list):
             """), {"agency": agency_list}
         )
 
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 
 '''
@@ -282,7 +296,7 @@ def get_reporting_stations_by_date(date: str):
             """), {"date": date}
         )
 
-        return [dict(row) for row in result]
+        return result.mappings().all()
 
 
 '''
@@ -302,4 +316,4 @@ def get_reporting_stations_forecast_by_date(date: str):
                  """), {"date": date}
         )
 
-        return [dict(row) for row in result]
+        return result.mappings().all()
