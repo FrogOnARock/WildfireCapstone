@@ -272,6 +272,17 @@ Forecast Weather Stations Queries:
     - based on the reporting agency, return data for a forecast station
 '''
 
+def get_forecast_stations_by_date_list():
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT distinct(rep_date)
+                FROM forecast_weather_stations
+            """)
+        )
+
+        return result.mappings().all()
+
 def get_forecast_stations_by_date(date: str):
     with SessionLocal() as session:
         result = session.execute(
@@ -288,17 +299,18 @@ def get_forecast_stations_by_agency(agency_list: list):
 
     #Possible values: MoFPB, AESRD, SERM, SOPFEU, NT, MBCONS, NWS, mSC, MoFPB
 
-        if not isinstance(agency_list, list):
-            raise ValueError("agency_list must be a list")
 
-        with SessionLocal() as session:
-            result = session.execute(
+    if not isinstance(agency_list, list):
+        raise ValueError("agency_list must be a list")
+
+    with SessionLocal() as session:
+        result = session.execute(
             text("""
-                SELECT *
-                FROM forecast_weather_stations
-                WHERE reporting_agency in :agency_list
-                """).bindparams(bindparam("agency", expanding=True)),
-            {"agency": agency_list}
+                 SELECT *
+                 FROM forecast_weather_stations
+                 WHERE agency in :agency_list
+                 """).bindparams(bindparam("agency_list", expanding=True)),
+            {"agency_list": agency_list}
         )
 
         return result.mappings().all()
@@ -320,6 +332,19 @@ Reporting Weather Station Queries:
     - based on the reporting date, return data for a reporting station
 '''
 
+def get_reporting_stations_date_list():
+
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT distinct(rep_date)
+                FROM reporting_weather_stations
+            """)
+        )
+
+        return result.mappings().all()
+
+
 def get_reporting_stations_by_date(date: str):
 
     with SessionLocal() as session:
@@ -340,6 +365,17 @@ Reporting Weather Stations Forecast queries:
     - based on the reporting date, return data for a reporting station 
 '''
 
+def get_reporting_stations_forecast_date_list():
+
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT distinct(rep_date)
+                FROM reporting_weather_stations_forecast
+            """)
+        )
+
+        return result.mappings().all()
 
 def get_reporting_stations_forecast_by_date(date: str):
     with SessionLocal() as session:

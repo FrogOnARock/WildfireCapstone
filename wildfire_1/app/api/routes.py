@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 from wildfire_1.app.services.wfs_queries import *
+from wildfire_1.app.services.wcs_queries import *
 #from wildfire_1.app.services.wfs_queries import get_raster_data
+from typing import List
+from fastapi import Query
 
 router = APIRouter()
 
@@ -59,13 +62,17 @@ def api_fire_perimeter_by_area(min_area: float):
 def api_fire_perimeter_hotspots_max():
     return fire_perimeter_hotspots_max()
 
+@router.get("/fire-forecast-stations-date-list")
+def api_fire_forecast_stations_date_list():
+    return get_forecast_stations_by_date_list()
+
 @router.get("/fire-forecast-stations-date")
 def api_fire_forecast_stations_date(date: str):
     return get_forecast_stations_by_date(date=date)
 
 @router.get("/fire-forecast-stations-agency")
-def api_fire_forecast_stations_agency(agency: list):
-    return get_forecast_stations_by_agency(agency=agency)
+def api_fire_forecast_stations_agency(agency: List[str] = Query(...)):
+    return get_forecast_stations_by_agency(agency_list=agency)
 
 @router.get("/fire-forecast-station-agencies")
 def api_fire_forecast_stations_agency_list():
@@ -78,3 +85,15 @@ def api_fire_reporting_stations_date(date: str):
 @router.get("/fire-reporting-weather-stations-forecast")
 def api_fire_reporting_stations_forecast(date: str):
     return get_reporting_stations_forecast_by_date(date=date)
+
+@router.get("/fire-reporting-weather-stations-dates")
+def api_fire_reporting_stations_date_list():
+    return get_reporting_stations_date_list()
+
+@router.get("/fire-reporting-weather-stations-forecast-dates")
+def api_fire_reporting_stations_forecast_date_list():
+    return get_reporting_stations_forecast_date_list()
+
+@router.get("/wcs-layer")
+def api_wcs_layers(date: str, table_name: str):
+    return wcs_query(date=date, table=table_name)
