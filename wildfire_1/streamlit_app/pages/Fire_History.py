@@ -7,10 +7,73 @@ from keplergl import KeplerGl
 from wildfire_1.streamlit_app.api_client import get_fire_history_by_date, get_fire_history_by_cause, get_fire_history_by_response, get_fire_history_by_hectares
 import streamlit.components.v1 as components
 import tempfile
-
+import os
+from PIL import Image
 
 st.set_page_config(layout="wide")
 st.title("Fire History")
+
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #121212;
+        color: white;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: white;
+    }
+
+    .stButton > button {
+        background-color: #b30000;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+
+    div[data-testid="stLinkButton"] {
+        background-color: #b30000 !important;
+        color: white !important;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1rem;
+        display: inline-block;
+        margin-top: 0.5rem;
+    }
+
+    div[data-testid="stLinkButton"]:hover {
+        background-color: #e60000 !important;
+        color: white !important;
+    }
+
+    section[data-testid="stSidebar"] {
+        background-color: #1e1e1e;
+        color: white;
+    }
+
+    footer, header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
+# ---------- Sidebar Logo ----------
+# Load logo
+logo_path = os.path.join(os.getcwd(), "wildfire_1", "streamlit_app", "logo", "Maple_Leaf.svg.png")
+logo = Image.open(logo_path)
+
+
+with st.sidebar:
+    st.image(logo, width=100)
+    st.markdown("🇨🇦 **Canadian Wildfire Data**")
+
+fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', 'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs']
+page_data = 'fire_data_h'
+
+for fd in fire_data_list:
+    if fd in st.session_state and fd != page_data:
+        del st.session_state[fd]
 
 # UI for choosing query
 query_type = st.radio("Choose a query", [
@@ -57,13 +120,13 @@ if st.button("Run Query"):
     else:
         data = []
 
-    st.session_state.fire_data = data
+    st.session_state.fire_data_h = data
 
 if st.button("Clear Results"):
-    st.session_state.fire_data = None
+    st.session_state.fire_data_h = None
 
 # Show results
-data = st.session_state.get("fire_data", None)
+data = st.session_state.get("fire_data_h", None)
 if not data:
     st.stop()
 

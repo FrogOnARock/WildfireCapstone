@@ -3,16 +3,48 @@ import pandas as pd
 import json
 from datetime import date
 from keplergl import KeplerGl
-from wildfire_1.streamlit_app.api_client import get_active_fires, get_active_fires_by_name, get_active_fire_firenames
+from wildfire_1.streamlit_app.api_client import get_wcs_layer
 import streamlit.components.v1 as components
 import tempfile
+from datetime import datetime
+from wildfire_1.app.db.session import SessionLocal
+from sqlalchemy.sql import text
 import os
 from PIL import Image
 
 
-st.set_page_config(layout="wide")
-st.title("Active Fires")
 
+WCS_LAYERS = {
+    "Daily Severity Rating": "daily_severity_rating",
+    "Drought Code": "drought_code",
+    "Wind Speed": "wind_speed",
+    "Wind Direction": "wind_direction",
+    "Fire Type": "fire_type",
+    "Initial Spread Index": "initial_spread_index",
+    "Precipitation": "precipitation"
+}
+
+def wcs_query_dates(table:str):
+
+    table = WCS_LAYERS[table]
+
+    # Validate table name
+    if table not in WCS_LAYERS.values():
+        raise ValueError(f"Invalid table name: {table}")
+
+
+    query = f"""
+        SELECT DISTINCT(acquisition_date)
+        FROM {table}
+        ORDER BY acquisition_date DESC
+    """
+
+    with SessionLocal() as session:
+        result = session.execute(text(query))
+        return result.mappings().all()
+
+st.set_page_config(layout="wide")
+st.title("WCS Layers")
 
 st.markdown("""
     <style>
@@ -70,7 +102,7 @@ with st.sidebar:
     st.markdown("🇨🇦 **Canadian Wildfire Data**")
 
 fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', 'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs']
-page_data = 'fire_data_af'
+page_data = 'fire_data_wcs'
 
 for fd in fire_data_list:
     if fd in st.session_state and fd != page_data:
@@ -78,41 +110,50 @@ for fd in fire_data_list:
 
 
 # UI for choosing query
-query_type = st.radio("Choose a query", [
-    "Get Active Fires",
-    "Get Active Fire by Name"
-])
+layer_choice = st.selectbox("Choose a WCS Layer", list(WCS_LAYERS.keys()))
 
 # Query form logic
 params = {}
-if query_type == "Get Active Fires":
-    st.markdown("### Parameters for Get Active Fires")
-    params["min_date"] = st.date_input("Start Date", value=date(2024, 1, 1), key="af_start")
-    params["max_date"] = st.date_input("End Date", value=date.today(), key="af_end")
+params["wcs_layer"] = WCS_LAYERS[layer_choice]
 
 
-elif query_type == "Get Active Fire by Name":
+acquisition_dates = [
+    f["acquisition_date"] for f in wcs_query_dates(layer_choice)
+    if f.get("acquisition_date")
+]
 
-    st.markdown("### Parameters for Get Active Fire by Name")
-    fire_id_list = [f["firename"] for f in get_active_fire_firenames() if "firename" in f]
-    params["fire_id"] = st.selectbox("Select Fire ID", options=fire_id_list, key="af_id")
+if acquisition_dates == []:
+    acquisition_dates = [wcs_query_dates(layer_choice)]
+
+acquisition_dates = [
+    f.isoformat()
+    for f in acquisition_dates
+]
+
+# Create a mapping from date (YYYY-MM-DD) to full timestamp
+date_map = {
+    d[:10]: d for d in acquisition_dates  # assumes format is always ISO
+}
+
+# Sorted list of just the date parts for the UI
+date_display_list = sorted(date_map.keys())
+
+# User selects just a clean date
+selected_date = st.selectbox("Select Acquisition Date", options=date_display_list)
+
+# Convert back to full ISO timestamp
+params["date"] = date_map[selected_date]
 
     # Buttons to run/clear
 if st.button("Run Query"):
-    if query_type == "Get Active Fires":
-        data = get_active_fires(str(params["min_date"]), str(params["max_date"]))
-    elif query_type == "Get Active Fire by Name":
-        data = get_active_fires_by_name(params["fire_id"])
-    else:
-        data = []
-
-    st.session_state.fire_data_af = data
+    data = get_wcs_layer(str(params["date"]), str(params["wcs_layer"]))
+    st.session_state.fire_data_wcs = data
 
 if st.button("Clear Results"):
-    st.session_state.fire_data_af = None
+    st.session_state.fire_data_wcs = None
 
 # Show results
-data = st.session_state.get("fire_data_af", None)
+data = st.session_state.get("fire_data_wcs", None)
 if not data:
     st.stop()
 
@@ -120,54 +161,61 @@ if not data:
 df = pd.DataFrame(data)
 
 features = []
-for _, row in df.iterrows():
-    if pd.notna(row.get("lat")) and pd.notna(row.get("lon")):
-        # Rename keys for tooltip display
-        props = {
-            "Fire Name": row.get("firename"),
-            "Start Date": row.get("startdate"),
-            "Hectares": row.get("hectares"),
-            "Agency": row.get("agency"),
-            "Stage of Control": row.get("stage_of_control"),
-            "Response": row.get("response_type"),
-            "lat": row.get("lat"),
-            "lon": row.get("lon")
+for row in data:
+
+    if row.get("geometry"):
+
+        geometry = json.loads(row["geometry"])
+        properties = {
+            "Value": row["value"],
+            "Longitude": row["lon"],
+            "Latitude": row["lat"],
+            "Acquisition Date": row["acquisition_date"]
         }
 
-        feature = {
+        features.append({
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [row["lon"], row["lat"]]
-            },
-            "properties": props
-        }
-        features.append(feature)
-
+            "geometry": geometry,
+            "properties": properties
+        })
 
 geojson = {
     "type": "FeatureCollection",
     "features": features
 }
 
+
+
 config = {
     "version": "v1",
     "config": {
         "visState": {
             "filters": [],
-            "layers": [],
+            "layers": [{
+                    "id": "WCS Layer",
+                    "type": "geojson",
+                    "config": {
+                        "dataId": "Area",  # This must match your KeplerGl data key
+                        "label": "Fire Perimeter Area Polygon",
+                        "color": [140, 255, 0],
+                        "highlightColor": [252, 242, 26, 255],
+                        "isVisible": True,
+                        "visConfig": {
+                            "opacity": 0.5,
+                            "thickness": 1,
+                            "strokeColor": [255, 255, 255]
+                        }
+                    }
+                }
+            ],
             "interactionConfig": {
                 "tooltip": {
                     "fieldsToShow": {
-                        "Active Fires": [
-                            {"name": "Fire Name", "format": None},
-                            {"name": "Start Date", "format": None},
-                            {"name": "Hectares", "format": None},
-                            {"name": "Agency", "format": None},
-                            {"name": "Stage of Control", "format": None},
-                            {"name": "Response", "format": None},
-                            {"name": "lat", "format": None},
-                            {"name": "lon", "format": None}
+                        "WCS Layer": [
+                            {"name": "Value", "format": None},
+                            {"name": "Latitude", "format": None},
+                            {"name": "Longitude", "format": None},
+                            {"name": "Acquisition Date", "format": None}
                         ]
                     },
                     "enabled": True
@@ -205,7 +253,8 @@ config = {
         }
     }
 }
-kepler_map = KeplerGl(data={"Active Fires": geojson})
+
+kepler_map = KeplerGl(data={"WCS Layer": geojson})
 kepler_map.config = config
 
 with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
@@ -215,18 +264,3 @@ with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
 
 
 components.html(html_content, height=700, width=1800, scrolling=True)
-
-st.markdown("---")
-st.subheader("Fire Details")
-
-if not df.empty:
-    fire_options = df['firename'].dropna().unique().tolist()
-    selected_fire = st.selectbox("Select a fire to view details", fire_options)
-
-    fire_details = df[df['firename'] == selected_fire]
-
-    if not fire_details.empty:
-        st.write("### Fire Metadata")
-        st.dataframe(fire_details.drop(columns=["geometry", "lat", "lon"], errors="ignore").reset_index(drop=True))
-
-

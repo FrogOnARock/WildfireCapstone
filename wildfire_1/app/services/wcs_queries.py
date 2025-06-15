@@ -41,7 +41,7 @@ ALLOWED_WCS_TABLES = {
 }
 
 
-def wcs_query(max_date: str, min_date:str, table: str):
+def wcs_query(date:str, table: str):
 
 
     # Validate table name
@@ -49,19 +49,26 @@ def wcs_query(max_date: str, min_date:str, table: str):
         raise ValueError(f"Invalid table name: {table}")
 
     #Deal with no setting of max date (default to 9999 to include all values)
-    if max_date is None:
-        max_date = "9999-12-31"
+    if date is None:
+        with SessionLocal() as session:
+            date = session.execute(
+                text("""
+                     SELECT max(acquisition_date)
+                     FROM :table
+                     """), {"table": table}
+            )
 
     # Inject table name safely (after validation)
     query = f"""
-        SELECT *
+        SELECT value, acquisition_date, lon, lat, ST_AsGeoJSON(geometry) as geometry
         FROM {table}
-        WHERE acquisition_date > :min_date AND acquisition_date < :max_date
+        WHERE acquisition_date = :date
     """
 
     with SessionLocal() as session:
         result = session.execute(text(query), {
-            "min_date": min_date,
-            "max_date": max_date
+            "date": date
         })
-        return [dict(row) for row in result]
+        return result.mappings().all()
+
+

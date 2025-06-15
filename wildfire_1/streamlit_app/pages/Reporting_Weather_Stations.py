@@ -3,15 +3,16 @@ import pandas as pd
 import json
 from datetime import date
 from keplergl import KeplerGl
-from wildfire_1.streamlit_app.api_client import get_forecast_station_dates, get_forecast_station_agencies, get_forecast_stations_by_date, get_forecast_stations_by_agency
+from wildfire_1.streamlit_app.api_client import get_reporting_weather_stations_dates, get_reporting_weather_stations_by_date
 import streamlit.components.v1 as components
 import tempfile
 from datetime import datetime
 import os
 from PIL import Image
 
+
 st.set_page_config(layout="wide")
-st.title("Forecast Stations")
+st.title("Reporting Weather Stations")
 
 st.markdown("""
     <style>
@@ -69,7 +70,7 @@ with st.sidebar:
     st.markdown("🇨🇦 **Canadian Wildfire Data**")
 
 fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', 'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs']
-page_data = 'fire_data_fs'
+page_data = 'fire_data_rws'
 
 for fd in fire_data_list:
     if fd in st.session_state and fd != page_data:
@@ -77,15 +78,14 @@ for fd in fire_data_list:
 
 # UI for choosing query
 query_type = st.radio("Choose a query", [
-    "Get Forecast Stations by Date",
-    "Get Forecast Stations by Agency"
+    "Get Reporting Weather Stations by Date"
 ])
 
 # Query form logic
 params = {}
-if query_type == "Get Forecast Stations by Date":
-    st.markdown("### Parameters for Get Forecast Stations by Date")
-    rep_dates = [f["rep_date"] for f in get_forecast_station_dates() if "rep_date" in f]
+if query_type == "Get Reporting Weather Stations by Date":
+    st.markdown("### Parameters for Get Reporting Weather Stations by Date")
+    rep_dates = [f["rep_date"] for f in get_reporting_weather_stations_dates() if "rep_date" in f]
     # Create a mapping from date (YYYY-MM-DD) to full timestamp
     date_map = {
         d[:10]: d for d in rep_dates  # assumes format is always ISO
@@ -100,28 +100,20 @@ if query_type == "Get Forecast Stations by Date":
     # Convert back to full ISO timestamp
     params["date"] = date_map[selected_date]
 
-elif query_type == "Get Forecast Stations by Agency":
-    st.markdown("### Parameters for Get Forecast Stations by Agency")
-    agencies = [f["agency"] for f in get_forecast_station_agencies() if "agency" in f]
-    selected = st.multiselect("Filter by Agency", agencies)
-    params["agencies"] = selected
-
     # Buttons to run/clear
 if st.button("Run Query"):
-    if query_type == "Get Forecast Stations by Date":
-        data = get_forecast_stations_by_date(str(params["date"]))
-    elif query_type == "Get Forecast Stations by Agency":
-        data = get_forecast_stations_by_agency(params["agencies"])
+    if query_type == "Get Reporting Weather Stations by Date":
+        data = get_reporting_weather_stations_by_date(str(params["date"]))
     else:
         data = []
 
-    st.session_state.fire_data_fs = data
+    st.session_state.fire_data_rws = data
 
 if st.button("Clear Results"):
-    st.session_state.fire_data_fs = None
+    st.session_state.fire_data_rws = None
 
 # Show results
-data = st.session_state.get("fire_data_fs", None)
+data = st.session_state.get("fire_data_rws", None)
 if not data:
     st.stop()
 
@@ -130,43 +122,39 @@ df = pd.DataFrame(data)
 
 features = []
 for _, row in df.iterrows():
-    if pd.notna(row.get("lat")) and pd.notna(row.get("lon")):
+    if pd.notna(row.get("latitude")) and pd.notna(row.get("longitude")):
         props = {
             "wmo": row.get("wmo"),
             "Name": row.get("name"),
             "Reporting Date": row.get("rep_date"),
-            "Agency": row.get("agency"),
-            "Upper Air Code": row.get("ua"),
-            "Instrument": row.get("instr"),
-            "Province": row.get("prov"),
-            "Latitude": row.get("lat"),
-            "Longitude": row.get("lon"),
-            "Elevation": row.get("elev"),
+            "Latitude": row.get("latitude"),
+            "Longitude": row.get("longitude"),
+            "Elevation": row.get("elevation"),
             "Temperature": row.get("temp"),
-            "Dew Point Temp.": row.get("td"),
             "Relative Humidity": row.get("rh"),
             "Wind Speed": row.get("ws"),
-            "Wind Gust": row.get("wg"),
             "Wind Direction": row.get("wdir"),
-            "Atmospheric Pressure": row.get("pres"),
-            "Visibility": row.get("vis"),
-            "Rainy Days": row.get("rndays"),
             "Precipitation": row.get("precip"),
             "Snow on Ground": row.get("sog"),
             "Fine Fuel Moisture Code": row.get("ffmc"),
             "Duff Moisture Code": row.get("dmc"),
             "Drought Code": row.get("dc"),
-            "Buildup Index": row.get("bui"),
             "Initial Spread Index": row.get("isi"),
+            "Buildup Index": row.get("bui"),
             "Fire Weather Index": row.get("fwi"),
-            "Daily Severity Rating": row.get("dsr")
+            "Daily Severity Rating": row.get("dsr"),
+            "X": row.get("x"),
+            "Y": row.get("y"),
+            "WX": row.get("wx"),
+            "WY": row.get("wy"),
+            "Timezone": row.get("timezone")
         }
 
         feature = {
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [row["lon"], row["lat"]]
+                "coordinates": [row["longitude"], row["latitude"]]
             },
             "properties": props
         }
@@ -186,34 +174,31 @@ config = {
             "interactionConfig": {
                 "tooltip": {
                     "fieldsToShow": {
-                        "Forecast Stations": [
+                        "Reporting Weather Stations": [
+                            {"name": "wmo", "format": None},
                             {"name": "Name", "format": None},
                             {"name": "Reporting Date", "format": None},
-                            {"name": "Agency", "format": None},
-                            {"name": "Upper Air Code", "format": None},
-                            {"name": "Instrument", "format": None},
-                            {"name": "Province", "format": None},
                             {"name": "Latitude", "format": None},
                             {"name": "Longitude", "format": None},
                             {"name": "Elevation", "format": None},
                             {"name": "Temperature", "format": None},
-                            {"name": "Dew Point Temp.", "format": None},
                             {"name": "Relative Humidity", "format": None},
                             {"name": "Wind Speed", "format": None},
-                            {"name": "Wind Gust", "format": None},
                             {"name": "Wind Direction", "format": None},
-                            {"name": "Atmospheric Pressure", "format": None},
-                            {"name": "Visibility", "format": None},
-                            {"name": "Rainy Days", "format": None},
                             {"name": "Precipitation", "format": None},
                             {"name": "Snow on Ground", "format": None},
                             {"name": "Fine Fuel Moisture Code", "format": None},
                             {"name": "Duff Moisture Code", "format": None},
                             {"name": "Drought Code", "format": None},
-                            {"name": "Buildup Index", "format": None},
                             {"name": "Initial Spread Index", "format": None},
+                            {"name": "Buildup Index", "format": None},
                             {"name": "Fire Weather Index", "format": None},
-                            {"name": "Daily Severity Rating", "format": None}
+                            {"name": "Daily Severity Rating", "format": None},
+                            {"name": "X", "format": None},
+                            {"name": "Y", "format": None},
+                            {"name": "WX", "format": None},
+                            {"name": "WY", "format": None},
+                            {"name": "Timezone", "format": None}
                         ]
                     },
                     "enabled": True
@@ -251,7 +236,7 @@ config = {
         }
     }
 }
-kepler_map = KeplerGl(data={"Forecast Stations": geojson})
+kepler_map = KeplerGl(data={"Reporting Weather Stations": geojson})
 kepler_map.config = config
 
 with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
@@ -263,47 +248,43 @@ with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
 components.html(html_content, height=700, width=1800, scrolling=True)
 
 st.markdown("---")
-st.subheader("Station Observations")
+st.subheader("Reporting Weather Station Observations")
 
 rename_dict = {
     "wmo": "WMO",
     "name": "Name",
     "rep_date": "Reporting Date",
-    "agency": "Agency",
-    "ua": "Upper Air Code",
-    "instr": "Instrument",
-    "prov": "Province",
-    "lat": "Latitude",
-    "lon": "Longitude",
-    "elev": "Elevation",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "elevation": "Elevation",
     "temp": "Temperature",
-    "td": "Dew Point Temp.",
     "rh": "Relative Humidity",
     "ws": "Wind Speed",
-    "wg": "Wind Gust",
     "wdir": "Wind Direction",
-    "pres": "Atmospheric Pressure",
-    "vis": "Visibility",
-    "rndays": "Rainy Days",
     "precip": "Precipitation",
     "sog": "Snow on Ground",
     "ffmc": "Fine Fuel Moisture Code",
     "dmc": "Duff Moisture Code",
     "dc": "Drought Code",
-    "bui": "Buildup Index",
     "isi": "Initial Spread Index",
+    "bui": "Buildup Index",
     "fwi": "Fire Weather Index",
-    "dsr": "Daily Severity Rating"
+    "dsr": "Daily Severity Rating",
+    "x": "X",
+    "y": "Y",
+    "wx": "WX",
+    "wy": "WY",
+    "timezone": "Timezone"
 }
 
 df.rename(columns=rename_dict, inplace=True)
 
-# Group fields
-station_metadata_cols = ["WMO", "Name", "Reporting Date", "Agency", "Upper Air Code", "Instrument", "Province", "Latitude", "Longitude", "Elevation"]
-raw_weather_cols = ["WMO", "Name", "Reporting Date", "Agency", "Province", "Temperature", "Dew Point Temp.", "Relative Humidity", "Wind Speed", "Wind Gust", "Wind Direction", "Atmospheric Pressure", "Visibility", "Rainy Days", "Precipitation", "Snow on Ground"]
-fire_index_cols = ["WMO", "Name", "Reporting Date", "Agency", "Province", "Fine Fuel Moisture Code", "Duff Moisture Code", "Drought Code", "Buildup Index", "Initial Spread Index", "Fire Weather Index", "Daily Severity Rating"]
+# Define categories
+station_metadata_cols = ["WMO", "Name", "Reporting Date", "Latitude", "Longitude", "Elevation", "X", "Y", "WX", "WY", "Timezone"]
+raw_weather_cols = ["WMO", "Name", "Reporting Date", "Temperature", "Relative Humidity", "Wind Speed", "Wind Direction", "Precipitation", "Snow on Ground"]
+fire_index_cols = ["WMO", "Name", "Reporting Date", "Fine Fuel Moisture Code", "Duff Moisture Code", "Drought Code", "Initial Spread Index", "Buildup Index", "Fire Weather Index", "Daily Severity Rating"]
 
-# Clean and show each table
+# Render grouped tables
 def display_table(title, columns):
     sub_df = df[columns].dropna(how="all")
     if not sub_df.empty:

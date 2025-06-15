@@ -1,4 +1,5 @@
 import requests
+from altair import param
 
 API_URL = 'http://localhost:8000/api'
 
@@ -95,6 +96,10 @@ def get_perimeter_hcounts():
     response = requests.get(f'{API_URL}/fire-perimeter-hotspots-max')
     return response.json() if response.status_code == 200 else []
 
+def get_forecast_station_dates():
+    response = requests.get(f'{API_URL}/fire-forecast-stations-date-list')
+    return response.json() if response.status_code == 200 else []
+
 def get_forecast_stations_by_date(date: str):
     params = {
         'date': date
@@ -103,10 +108,12 @@ def get_forecast_stations_by_date(date: str):
     return response.json() if response.status_code == 200 else []
 
 def get_forecast_stations_by_agency(agency: list):
-    params = {
-        'agency': agency
-    }
+    params = [('agency', a) for a in agency]
     response = requests.get(f'{API_URL}/fire-forecast-stations-agency', params=params)
+    return response.json() if response.status_code == 200 else []
+
+def get_forecast_station_agencies():
+    response = requests.get(f'{API_URL}/fire-forecast-station-agencies')
     return response.json() if response.status_code == 200 else []
 
 def get_reporting_weather_stations_by_date(date: str):
@@ -116,13 +123,27 @@ def get_reporting_weather_stations_by_date(date: str):
     response = requests.get(f'{API_URL}/fire-reporting-weather-stations', params=params)
     return response.json() if response.status_code == 200 else []
 
-def get_forecast_stations_by_agency(date: str):
+def get_reporting_weather_forecast_stations_by_date(date: str):
     params = {
         'date': date
     }
     response = requests.get(f'{API_URL}/fire-reporting-weather-stations-forecast', params=params)
     return response.json() if response.status_code == 200 else []
 
-def get_forecast_station_agencies():
-    response = requests.get(f'{API_URL}/fire-forecast-station-agencies')
+def get_reporting_weather_stations_dates():
+    response = requests.get(f'{API_URL}/fire-reporting-weather-stations-dates')
     return response.json() if response.status_code == 200 else []
+
+
+def get_reporting_weather_forecast_stations_dates():
+    response = requests.get(f'{API_URL}/fire-reporting-weather-stations-forecast-dates')
+    return response.json() if response.status_code == 200 else []
+
+def get_wcs_layer(date: str, table_name: str):
+    params = {
+        'date': date,
+        'table_name': table_name
+    }
+    response = requests.get(f'{API_URL}/wcs-layer', params=params)
+    return response.json() if response.status_code == 200 else []
+
