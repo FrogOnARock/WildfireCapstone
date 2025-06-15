@@ -1,5 +1,6 @@
 from wildfire_1.app.db.session import SessionLocal
 from sqlalchemy.sql import text
+from sqlalchemy import bindparam
 
 ##############
 #WFS Queries:
@@ -28,7 +29,6 @@ def get_active_fires(max_date: str, min_date:str):
         result = session.execute(
             text("""
                 SELECT ST_AsGeoJSON(geometry) AS geometry,
-                    id,
                     lat,
                     lon,
                     firename,
@@ -45,18 +45,25 @@ def get_active_fires(max_date: str, min_date:str):
         return result.mappings().all()
 
 
-def get_active_fire_by_id(fire_id: str):
+def get_active_fire_by_name(fire_name: str):
     with SessionLocal() as session:
         result = session.execute(
             text("""
                 SELECT *
                 FROM active_fires
-                WHERE id = :fire_id
-            """), {"fire_id": fire_id}
+                WHERE firename = :fire_name
+            """), {"fire_name": fire_name}
         )
         return result.mappings().all()
 
-
+def get_active_fire_names():
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+            select distinct(firename)
+            from active_fires""")
+        )
+        return result.mappings().all()
 
 '''
 Fire Danger Queries:
@@ -68,25 +75,28 @@ Fire Danger Queries:
 
 def get_fire_danger_by_date(date: str):
 
-    #set up a conditional to return data for the latest date if no date is provided
-    if date is None:
-        with SessionLocal() as session:
-            date = session.execute(
-                text("""
-                    SELECT max(acquisition_date)
-                    FROM fire_danger
-                """))
 
     with SessionLocal() as session:
         result = session.execute(
             text("""
-                SELECT *
+                SELECT "GRIDCODE", acquisition_date, ST_AsGeoJSON(geometry) as geometry
                 FROM fire_danger
-                WHERE acq_date = :date
+                WHERE acquisition_date = :date
             """), {"date": date}
         )
         return result.mappings().all()
 
+
+def get_fire_danger_dates():
+
+    with SessionLocal() as session:
+        date = session.execute(
+            text("""
+                SELECT distinct(acquisition_date)
+                FROM fire_danger
+            """))
+
+    return date.mappings().all()
 
 '''
 Fire History Queries:
@@ -147,20 +157,22 @@ def get_fire_history_by_cause(cause: str):
 
     cause_list = cause_dict[cause]
 
-
     with SessionLocal() as session:
         result = session.execute(
             text("""
-                SELECT *
-                FROM fire_history
-                WHERE cause in :cause
-            """), {"cause": cause_list}
-        )
+                 SELECT *
+                 FROM fire_history
+                 WHERE cause IN :cause
+                 """).bindparams(bindparam("cause", expanding=True)),
+            {"cause": cause_list})
         return result.mappings().all()
 
 def get_fire_history_by_response(response: str):
 
     #Possible values: None, NOR, MON, MOD, FUL
+
+    if response == "None":
+        response = None
 
     with SessionLocal() as session:
         result = session.execute(
@@ -204,24 +216,24 @@ def get_perimeter_by_date(start_date: str, end_date: str):
     with SessionLocal() as session:
         result = session.execute(
             text("""
-                 SELECT *
-                 FROM fire_perimeter_estimate
+                 SELECT hcount, firstdate, lastdate, area, acquisition_date, ST_AsGeoJSON(geometry) as geometry
+                 FROM fire_perimeter_estimates
                  where firstdate > :start_date
                    and lastdate < :end_date
-                 """), {"max_date": start_date, "min_date": end_date}
+                 """), {"start_date": start_date, "end_date": end_date}
         )
 
     return result.mappings().all()
 
-def get_perimeter_by_hcount(min_hcount: int):
+def get_perimeter_by_hcount(min_hcount: int, max_hcount: int):
 
     with SessionLocal() as session:
         result = session.execute(
             text("""
-                SELECT *
-                FROM fire_perimeter_estimate
-                WHERE hcount >= :min_hcount
-            """), {"min_hcount": min_hcount}
+                SELECT hcount, firstdate, lastdate, area, acquisition_date, ST_AsGeoJSON(geometry) as geometry
+                FROM fire_perimeter_estimates
+                WHERE hcount >= :min_hcount and hcount <= :max_count
+            """), {"min_hcount": min_hcount, "max_count": max_hcount}
         )
 
     return result.mappings().all()
@@ -231,10 +243,22 @@ def get_perimeter_by_area(min_area: float):
     with SessionLocal() as session:
         result = session.execute(
             text("""
-                SELECT *
-                FROM fire_perimeter_estimate
+                SELECT hcount, firstdate, lastdate, area, acquisition_date, ST_AsGeoJSON(geometry) as geometry
+                FROM fire_perimeter_estimates
                 WHERE area >= :min_area
             """), {"min_area": min_area}
+        )
+
+    return result.mappings().all()
+
+def fire_perimeter_hotspots_max():
+
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT max(hcount)
+                FROM fire_perimeter_estimates
+            """)
         )
 
     return result.mappings().all()
@@ -264,20 +288,31 @@ def get_forecast_stations_by_agency(agency_list: list):
 
     #Possible values: MoFPB, AESRD, SERM, SOPFEU, NT, MBCONS, NWS, mSC, MoFPB
 
-    if not isinstance(agency_list, list):
-        raise ValueError("agency_list must be a list")
+        if not isinstance(agency_list, list):
+            raise ValueError("agency_list must be a list")
 
-    with SessionLocal() as session:
-        result = session.execute(
+        with SessionLocal() as session:
+            result = session.execute(
             text("""
                 SELECT *
                 FROM forecast_weather_stations
                 WHERE reporting_agency in :agency_list
-            """), {"agency": agency_list}
+                """).bindparams(bindparam("agency", expanding=True)),
+            {"agency": agency_list}
         )
 
         return result.mappings().all()
 
+def get_forecast_station_agencies():
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT distinct(agency)
+                FROM forecast_weather_stations
+            """)
+        )
+
+        return result.mappings().all()
 
 '''
 Reporting Weather Station Queries:
