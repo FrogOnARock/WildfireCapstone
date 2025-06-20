@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from wildfire_1.app.services.wfs_queries import *
 from wildfire_1.app.services.wcs_queries import *
+from wildfire_1.app.services.additional_queries import *
 #from wildfire_1.app.services.wfs_queries import get_raster_data
 from typing import List
 from fastapi import Query
@@ -97,3 +98,8 @@ def api_fire_reporting_stations_forecast_date_list():
 @router.get("/wcs-layer")
 def api_wcs_layers(date: str, table_name: str):
     return wcs_query(date=date, table=table_name)
+
+
+@router.get("/add-layer")
+def api_add_layers(date: str, table_name: str):
+    return additional_table_query(date=date, table=table_name)

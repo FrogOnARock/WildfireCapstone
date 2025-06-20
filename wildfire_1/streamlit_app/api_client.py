@@ -147,3 +147,11 @@ def get_wcs_layer(date: str, table_name: str):
     response = requests.get(f'{API_URL}/wcs-layer', params=params)
     return response.json() if response.status_code == 200 else []
 
+def get_add_layer(date: str, table_name: str):
+    params = {
+        'date': date,
+        'table_name': table_name
+    }
+    response = requests.get(f'{API_URL}/add-layer', params=params)
+    return response.json() if response.status_code == 200 else []
+

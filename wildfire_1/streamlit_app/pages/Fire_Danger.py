@@ -68,7 +68,8 @@ with st.sidebar:
     st.image(logo, width=100)
     st.markdown("🇨🇦 **Canadian Wildfire Data**")
 
-fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', 'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs']
+fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', \
+                  'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs', 'fire_data_add']
 page_data = 'fire_data_fd'
 
 for fd in fire_data_list:

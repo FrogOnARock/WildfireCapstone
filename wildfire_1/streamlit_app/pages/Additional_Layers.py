@@ -3,7 +3,7 @@ import pandas as pd
 import json
 from datetime import date
 from keplergl import KeplerGl
-from wildfire_1.streamlit_app.api_client import get_wcs_layer
+from wildfire_1.streamlit_app.api_client import get_add_layer
 import streamlit.components.v1 as components
 import tempfile
 from datetime import datetime
@@ -11,24 +11,26 @@ from wildfire_1.app.db.session import SessionLocal
 from sqlalchemy.sql import text
 import os
 from PIL import Image
+import random
 
 
-WCS_LAYERS = {
-    "Daily Severity Rating": "daily_severity_rating",
-    "Drought Code": "drought_code",
-    "Wind Speed": "wind_speed",
-    "Wind Direction": "wind_direction",
-    "Fire Type": "fire_type",
-    "Initial Spread Index": "initial_spread_index",
-    "Precipitation": "precipitation"
+
+ADD_LAYERS = {
+    "Bulk Density": "bulk_density_5cm",
+    "Clay Percentage": "clay_5cm",
+    "Landcover": "landcover",
+    "Ph Levels": "ph_5cm",
+    "Sand Percentage": "sand_5cm",
+    "Silt Percentage": "silt_5cm",
+    "Soil Organic Carbon": "soc_5cm"
 }
 
-def wcs_query_dates(table:str):
+def add_query_dates(table:str):
 
-    table = WCS_LAYERS[table]
+    table = ADD_LAYERS[table]
 
     # Validate table name
-    if table not in WCS_LAYERS.values():
+    if table not in ADD_LAYERS.values():
         raise ValueError(f"Invalid table name: {table}")
 
 
@@ -43,7 +45,7 @@ def wcs_query_dates(table:str):
         return result.mappings().all()
 
 st.set_page_config(layout="wide")
-st.title("WCS Layers")
+st.title("Additional Layers")
 
 st.markdown("""
     <style>
@@ -102,7 +104,7 @@ with st.sidebar:
 
 fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', \
                   'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs', 'fire_data_add']
-page_data = 'fire_data_wcs'
+page_data = 'fire_data_add'
 
 for fd in fire_data_list:
     if fd in st.session_state and fd != page_data:
@@ -110,20 +112,23 @@ for fd in fire_data_list:
 
 
 # UI for choosing query
-layer_choice = st.selectbox("Choose a WCS Layer", list(WCS_LAYERS.keys()))
+layer_choice = st.selectbox("Choose a Additional Layer", list(ADD_LAYERS.keys()))
 
 # Query form logic
 params = {}
-params["wcs_layer"] = WCS_LAYERS[layer_choice]
+params["add_layer"] = ADD_LAYERS[layer_choice]
+
+if layer_choice == "Landcover":
+    st.markdown('Please note that this layer requires significant load times...')
 
 
 acquisition_dates = [
-    f["acquisition_date"] for f in wcs_query_dates(layer_choice)
+    f["acquisition_date"] for f in add_query_dates(layer_choice)
     if f.get("acquisition_date")
 ]
 
 if acquisition_dates == []:
-    acquisition_dates = [wcs_query_dates(layer_choice)]
+    acquisition_dates = [add_query_dates(layer_choice)]
 
 acquisition_dates = [
     f.isoformat()
@@ -146,17 +151,26 @@ params["date"] = date_map[selected_date]
 
     # Buttons to run/clear
 if st.button("Run Query"):
-    data = get_wcs_layer(str(params["date"]), str(params["wcs_layer"]))
-    st.session_state.fire_data_wcs = data
+    data = get_add_layer(str(params["date"]), str(params["add_layer"]))
+    st.session_state.fire_data_add = data
 
 if st.button("Clear Results"):
-    st.session_state.fire_data_wcs = None
+    st.session_state.fire_data_add = None
 
 # Show results
-data = st.session_state.get("fire_data_wcs", None)
+data = st.session_state.get("fire_data_add", None)
 if not data:
     st.stop()
 
+
+data = st.session_state.get("fire_data_add", None)
+if not data:
+    st.stop()
+
+# Limit to 5000 rows
+sample_size = 100000
+if len(data) > sample_size:
+    data = random.sample(data, sample_size)
 
 df = pd.DataFrame(data)
 
@@ -165,15 +179,9 @@ for row in data:
 
     if row.get("geometry"):
 
-        if layer_choice == "Daily Severity Rating":
-            value = round(row["value"], 1)
-        else:
-            value = row["value"]
-
-
         geometry = json.loads(row["geometry"])
         properties = {
-            "Value": value,
+            "Value": round(row["value"],1),
             "Longitude": row["lon"],
             "Latitude": row["lat"],
             "Acquisition Date": row["acquisition_date"]
@@ -198,11 +206,11 @@ config = {
         "visState": {
             "filters": [],
             "layers": [{
-                    "id": "WCS Layer",
+                    "id": "Additional Layer",
                     "type": "geojson",
                     "config": {
                         "dataId": "Area",  # This must match your KeplerGl data key
-                        "label": "Fire Perimeter Area Polygon",
+                        "label": "Additional Layer Area Polygon",
                         "color": [140, 255, 0],
                         "highlightColor": [252, 242, 26, 255],
                         "isVisible": True,
@@ -217,7 +225,7 @@ config = {
             "interactionConfig": {
                 "tooltip": {
                     "fieldsToShow": {
-                        "WCS Layer": [
+                        "Additional Layer": [
                             {"name": "Value", "format": None},
                             {"name": "Latitude", "format": None},
                             {"name": "Longitude", "format": None},
@@ -260,7 +268,7 @@ config = {
     }
 }
 
-kepler_map = KeplerGl(data={"WCS Layer": geojson})
+kepler_map = KeplerGl(data={"Additional Layer": geojson})
 kepler_map.config = config
 
 with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
