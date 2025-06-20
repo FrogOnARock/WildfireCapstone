@@ -113,8 +113,13 @@ with col6:
 
 st.markdown("---")
 
-col7 = st.columns(1)[0]
+col7, col8, _ = st.columns(3)
 with col7:
     st.header("🌀 WCS Layers")
     st.write("Query and visualize raster layers like DSR, ISI, wind, and precipitation.")
     st.page_link("pages/WCS_Layers.py", label="Go to WCS Layers")
+
+with col8:
+    st.header("🗺️ Additional Layers")
+    st.write("Query and visualize geospatial layers like bulk density, soil texture, SOC, pH, and landcover.")
+    st.page_link("pages/Additional_Layers.py", label="Go to Additional Layers")
