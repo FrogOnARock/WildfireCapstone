@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from datetime import date
 from keplergl import KeplerGl
-from wildfire_1.streamlit_app.api_client import get_fire_danger, get_fire_danger_dates
+from api_client import get_fire_danger, get_fire_danger_dates
 import streamlit.components.v1 as components
 import tempfile
 import os
@@ -13,7 +13,7 @@ from PIL import Image
 st.set_page_config(layout="wide")
 st.title("Fire Danger")
 
-st.markdown("""
+st.markdown("""1
     <style>
     .stApp {
         background-color: #121212;

@@ -3,7 +3,7 @@ import pandas as pd
 import json
 from datetime import date
 from keplergl import KeplerGl
-from wildfire_1.streamlit_app.api_client import get_reporting_weather_stations_dates, get_reporting_weather_stations_by_date
+from api_client import get_reporting_weather_stations_dates, get_reporting_weather_stations_by_date
 import streamlit.components.v1 as components
 import tempfile
 from datetime import datetime

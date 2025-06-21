@@ -1,0 +1,31 @@
+# Use full Python 3.11 image to avoid ML compatibility issues
+FROM python:3.11
+
+LABEL maintainer="Mackenzie Rock"
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and .env
+COPY requirements.txt .
+COPY .env .env
+
+# Install Python packages
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Copy everything (so Streamlit can call FastAPI too)
+COPY . /app/wildfire_1
+
+# Expose Streamlit port (Cloud Run will set this via $PORT)
+EXPOSE 8000
+
+# Run Streamlit using dynamic $PORT (Cloud Run compatible)
+CMD ["bash", "-c", "streamlit run wildfire_1/streamlit_app/Home.py --server.port=$PORT --server.address=0.0.0.0 --server.enableCORS=false"]
