@@ -240,3 +240,14 @@ Query via FastAPI for the following:
 
 There is only one required environment variable. It is provided above in the form of the connection string: 
 'postgresql://postgres:K2><X*T$Jad#gQg2@34.23.205.32:5432/postgres'
+
+___
+
+## Contact Information
+For any questions or concerns, please contact:
+
+Name: Mackenzie Rock
+
+Email: themackrock@outlook.com
+
+GitHub: https://github.com/frogonarock
