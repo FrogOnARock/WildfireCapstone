@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from datetime import date
 from keplergl import KeplerGl
-from wildfire_1.streamlit_app.api_client import get_perimeter_hcounts, get_perimeter_by_date, get_perimeter_by_hcount, get_perimeter_by_area
+from api_client import get_perimeter_hcounts, get_perimeter_by_date, get_perimeter_by_hcount, get_perimeter_by_area
 import streamlit.components.v1 as components
 import tempfile
 import os

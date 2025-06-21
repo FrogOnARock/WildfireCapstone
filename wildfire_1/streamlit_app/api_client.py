@@ -1,7 +1,7 @@
 import requests
 from altair import param
 
-API_URL = 'http://localhost:8000/api'
+API_URL = 'https://wildfire-api-848755338708.us-east1.run.app/api'
 
 def get_active_fires(min_date: str, max_date: str = None):
     params = {

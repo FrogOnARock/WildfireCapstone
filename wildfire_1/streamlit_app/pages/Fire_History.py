@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from datetime import date
 from keplergl import KeplerGl
-from wildfire_1.streamlit_app.api_client import get_fire_history_by_date, get_fire_history_by_cause, get_fire_history_by_response, get_fire_history_by_hectares
+from api_client import get_fire_history_by_date, get_fire_history_by_cause, get_fire_history_by_response, get_fire_history_by_hectares
 import streamlit.components.v1 as components
 import tempfile
 import os
