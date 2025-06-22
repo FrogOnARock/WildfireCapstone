@@ -99,7 +99,30 @@ def api_fire_reporting_stations_forecast_date_list():
 def api_wcs_layers(date: str, table_name: str):
     return wcs_query(date=date, table=table_name)
 
-
 @router.get("/add-layer")
 def api_add_layers(date: str, table_name: str):
     return additional_table_query(date=date, table=table_name)
+
+@router.get("/fire-m3hotspot-by-date")
+def api_hotspots_by_date(date: str):
+    return get_hotspot_by_date(date=date)
+
+@router.get("/fire-m3hotspot-date-list")
+def api_hotspot_date_list():
+    return get_hotspot_date_list()
+
+@router.get("/fire-m3hotspot-ecozone-list")
+def api_hotspot_ecozone_list():
+    return get_ecozone_list()
+
+@router.get("/fire-m3hotspot-by-ecozone")
+def api_hotspot_by_ecozone(ecozone: str):
+    return get_hotspot_by_ecozone(ecozone=ecozone)
+
+@router.get("/fire-hotspot-temp-max")
+def api_hotspot_temp_max():
+    return get_hotspot_temp_max()
+
+@router.get("/fire-hotspot-by-temp")
+def api_fire_hotspot_by_temp(min_temp: float, max_temp: float):
+    return get_hotspot_by_temp(min=min_temp, max=max_temp)

@@ -28,4 +28,4 @@ COPY . /app/wildfire_1
 EXPOSE 8000
 
 # Run Streamlit using dynamic $PORT (Cloud Run compatible)
-CMD ["bash", "-c", "streamlit run wildfire_1/streamlit_app/Home.py --server.port=$PORT --server.address=0.0.0.0 --server.enableCORS=false"]
+CMD ["bash", "-c", "streamlit run wildfire_1/streamlit_app/Home.py --server.port=8000 --server.address=0.0.0.0 --server.enableCORS=false"]

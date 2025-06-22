@@ -15,30 +15,22 @@ st.title("Forecast Stations")
 
 st.markdown("""
     <style>
+    /* Default (Light mode) */
     .stApp {
-        background-color: #121212;
-        color: white;
+        color: black;
     }
 
     h1, h2, h3, h4, h5, h6 {
-        color: white;
+        color: black;
     }
 
-    .stButton > button {
-        background-color: #b30000;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-    }
-
-    div[data-testid="stLinkButton"] {
+    .stButton > button, div[data-testid="stLinkButton"] {
         background-color: #b30000 !important;
         color: white !important;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        text-align: center;
         font-weight: bold;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        text-align: center;
         font-size: 1rem;
         display: inline-block;
         margin-top: 0.5rem;
@@ -46,15 +38,36 @@ st.markdown("""
 
     div[data-testid="stLinkButton"]:hover {
         background-color: #e60000 !important;
-        color: white !important;
     }
 
     section[data-testid="stSidebar"] {
-        background-color: #1e1e1e;
-        color: white;
+        background-color: #f5f5f5;
+        color: black;
     }
 
     footer, header {visibility: hidden;}
+
+    /* Dark mode overrides */
+    @media (prefers-color-scheme: dark) {
+        .stApp {
+            background-color: #121212;
+            color: white;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: white;
+        }
+
+        .stButton > button, div[data-testid="stLinkButton"] {
+            background-color: #b30000 !important;
+            color: white !important;
+        }
+
+        section[data-testid="stSidebar"] {
+            background-color: #1e1e1e;
+            color: white;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -63,13 +76,12 @@ st.markdown("""
 logo_path = os.path.join(os.getcwd(), "wildfire_1", "streamlit_app", "logo", "Maple_Leaf.svg.png")
 logo = Image.open(logo_path)
 
-
 with st.sidebar:
     st.image(logo, width=100)
-    st.markdown("🇨🇦 **Canadian Wildfire Data**")
+    st.markdown("**Canadian Wildfire Data**")
 
 fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', \
-                  'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs', 'fire_data_add']
+                  'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs', 'fire_data_add', 'fire_data_m3']
 page_data = 'fire_data_fs'
 
 for fd in fire_data_list:
