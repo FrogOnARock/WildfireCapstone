@@ -388,3 +388,86 @@ def get_reporting_stations_forecast_by_date(date: str):
         )
 
         return result.mappings().all()
+
+
+'''
+M3 Hotspot queries:
+- get_hotspot_by_date
+    - Return hotspots by reported daate
+- get_hotspot_by_ecozone
+    - Get hotspots by ecological zone
+- get_hotspot_by_temp
+    - Get hotspots based on a temperature range
+'''
+
+def get_hotspot_date_list():
+
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT distinct(rep_date)
+                FROM m3_hotspots
+            """)
+        )
+
+        return result.mappings().all()
+
+def get_hotspot_by_date(date: str):
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                 SELECT *
+                 FROM m3_hotspots
+                 WHERE rep_date = :date
+                 """), {"date": date}
+        )
+
+        return result.mappings().all()
+
+def get_ecozone_list():
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT distinct(ecozone)
+                FROM m3_hotspots
+            """)
+        )
+
+        return result.mappings().all()
+
+
+def get_hotspot_by_ecozone(ecozone: str):
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                 SELECT *
+                 FROM m3_hotspots
+                 WHERE ecozone = :ecozone
+                 """), {"ecozone": ecozone}
+        )
+
+        return result.mappings().all()
+
+def get_hotspot_temp_max():
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                 SELECT max(temp)
+                 FROM m3_hotspots
+                 """)
+        )
+
+    return result.mappings().all()
+
+def get_hotspot_by_temp(min: float, max: float):
+
+    with SessionLocal() as session:
+        result = session.execute(
+            text("""
+                SELECT *
+                FROM m3_hotspots
+                WHERE temp >= :min and temp <= :max
+            """), {"min": min, "max": max}
+        )
+
+    return result.mappings().all()

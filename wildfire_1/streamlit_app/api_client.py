@@ -155,3 +155,40 @@ def get_add_layer(date: str, table_name: str):
     response = requests.get(f'{API_URL}/add-layer', params=params)
     return response.json() if response.status_code == 200 else []
 
+
+def get_hotspot_date_list():
+    response = requests.get(f'{API_URL}/fire-m3hotspot-date-list')
+    return response.json() if response.status_code == 200 else []
+
+def get_hotspot_by_date(date: str):
+    params = {
+        'date': date
+    }
+    response = requests.get(f'{API_URL}/fire-m3hotspot-by-date', params=params)
+    return response.json() if response.status_code == 200 else []
+
+
+def get_hotspot_ecozone_list():
+    response = requests.get(f'{API_URL}/fire-m3hotspot-ecozone-list')
+    return response.json() if response.status_code == 200 else []
+
+def get_hotspot_by_ecozone(ecozone: str):
+    params = {
+        'ecozone': ecozone
+    }
+    response = requests.get(f'{API_URL}/fire-m3hotspot-by-ecozone', params=params)
+    return response.json() if response.status_code == 200 else []
+
+
+def get_hotspot_temp_max():
+    response = requests.get(f'{API_URL}/fire-hotspot-temp-max')
+    return response.json() if response.status_code == 200 else []
+
+def get_hotspot_by_temp(min_temp: float, max_temp: float):
+    params = {
+        'min_temp': min_temp,
+        'max_temp': max_temp
+    }
+    response = requests.get(f'{API_URL}/fire-hotspot-by-temp', params=params)
+    return response.json() if response.status_code == 200 else []
+

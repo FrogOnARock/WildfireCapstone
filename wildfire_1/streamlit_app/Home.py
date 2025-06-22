@@ -11,30 +11,22 @@ logo = Image.open(logo_path)
 
 st.markdown("""
     <style>
+    /* Default (Light mode) */
     .stApp {
-        background-color: #121212;
-        color: white;
+        color: black;
     }
 
     h1, h2, h3, h4, h5, h6 {
-        color: white;
+        color: black;
     }
 
-    .stButton > button {
-        background-color: #b30000;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-    }
-
-    div[data-testid="stLinkButton"] {
+    .stButton > button, div[data-testid="stLinkButton"] {
         background-color: #b30000 !important;
         color: white !important;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        text-align: center;
         font-weight: bold;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        text-align: center;
         font-size: 1rem;
         display: inline-block;
         margin-top: 0.5rem;
@@ -42,15 +34,36 @@ st.markdown("""
 
     div[data-testid="stLinkButton"]:hover {
         background-color: #e60000 !important;
-        color: white !important;
     }
 
     section[data-testid="stSidebar"] {
-        background-color: #1e1e1e;
-        color: white;
+        background-color: #f5f5f5;
+        color: black;
     }
 
     footer, header {visibility: hidden;}
+
+    /* Dark mode overrides */
+    @media (prefers-color-scheme: dark) {
+        .stApp {
+            background-color: #121212;
+            color: white;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: white;
+        }
+
+        .stButton > button, div[data-testid="stLinkButton"] {
+            background-color: #b30000 !important;
+            color: white !important;
+        }
+
+        section[data-testid="stSidebar"] {
+            background-color: #1e1e1e;
+            color: white;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -69,7 +82,7 @@ with col3:
 # ---------- Sidebar Logo ----------
 with st.sidebar:
     st.image(logo, width=100)
-    st.markdown("🇨🇦 **Canadian Wildfire Data**")
+    st.markdown("**Canadian Wildfire Data**")
 
 # ---------- Intro ----------
 st.markdown("Welcome to the **Canadian Wildfire Data Visualization Tool**. Select a page below to explore detailed maps and tables.")
@@ -113,7 +126,7 @@ with col6:
 
 st.markdown("---")
 
-col7, col8, _ = st.columns(3)
+col7, col8, col9 = st.columns(3)
 with col7:
     st.header("🌀 WCS Layers")
     st.write("Query and visualize raster layers like DSR, ISI, wind, and precipitation.")
@@ -123,3 +136,8 @@ with col8:
     st.header("🗺️ Additional Layers")
     st.write("Query and visualize geospatial layers like bulk density, soil texture, SOC, pH, and landcover.")
     st.page_link("pages/Additional_Layers.py", label="Go to Additional Layers")
+
+with col9:
+    st.header("🛰️ M3 Hotspots")
+    st.write("Explore thermal hotspots and fire behavior attributes from MODIS and VIIRS satellites.")
+    st.page_link("pages/M3_Hotspots.py", label="Go to M3 Hotspots")
