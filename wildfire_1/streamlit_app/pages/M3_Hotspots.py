@@ -11,7 +11,7 @@ import os
 from PIL import Image
 
 st.set_page_config(layout="wide")
-st.title("Fire Perimeters")
+st.title("M3 Hotspots")
 
 st.markdown("""
     <style>
