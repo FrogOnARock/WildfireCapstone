@@ -12,7 +12,7 @@ from PIL import Image
 
 
 st.set_page_config(layout="wide")
-st.title("M3 Hotspots")
+st.title("Reporting Weather Stations")
 
 st.markdown("""
     <style>
