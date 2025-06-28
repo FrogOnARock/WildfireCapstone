@@ -22,6 +22,8 @@ def api_active_fire_by_name(name: str):
 def api_active_fire_names():
     return get_active_fire_names()
 
+
+#fire danger API section
 @router.get("/fire-danger")
 def api_fire_danger(date: str):
     return get_fire_danger_by_date(date=date)
@@ -31,6 +33,8 @@ def api_fire_danger(date: str):
 def api_fire_danger_dates():
     return get_fire_danger_dates()
 
+
+#Fire history API section
 @router.get("/fire-history-by-date")
 def api_fire_history_by_date(max_date: str, min_date: str = None):
     return get_fire_history_by_date(max_date=max_date, min_date=min_date)
@@ -47,6 +51,7 @@ def api_fire_history_by_response(response: str):
 def api_fire_history_by_hectares(max_hectares: float, min_hectares: float = None):
     return get_fire_history_by_hectares(max_hectares=max_hectares, min_hectares=min_hectares)
 
+#fire perimeter API section
 @router.get("/fire-perimeter-by-date")
 def api_fire_perimeter_by_date(start_date: str, end_date: str):
     return get_perimeter_by_date(start_date=start_date, end_date=end_date)
@@ -63,6 +68,7 @@ def api_fire_perimeter_by_area(min_area: float):
 def api_fire_perimeter_hotspots_max():
     return fire_perimeter_hotspots_max()
 
+#fire forecast stations API section
 @router.get("/fire-forecast-stations-date-list")
 def api_fire_forecast_stations_date_list():
     return get_forecast_stations_by_date_list()
@@ -79,6 +85,7 @@ def api_fire_forecast_stations_agency(agency: List[str] = Query(...)):
 def api_fire_forecast_stations_agency_list():
     return get_forecast_station_agencies()
 
+#fire reporting weather stations API section
 @router.get("/fire-reporting-weather-stations")
 def api_fire_reporting_stations_date(date: str):
     return get_reporting_stations_by_date(date=date)
@@ -95,6 +102,7 @@ def api_fire_reporting_stations_date_list():
 def api_fire_reporting_stations_forecast_date_list():
     return get_reporting_stations_forecast_date_list()
 
+#WCS and Additional layer section
 @router.get("/wcs-layer")
 def api_wcs_layers(date: str, table_name: str):
     return wcs_query(date=date, table=table_name)
@@ -103,6 +111,7 @@ def api_wcs_layers(date: str, table_name: str):
 def api_add_layers(date: str, table_name: str):
     return additional_table_query(date=date, table=table_name)
 
+#M3 Hotspot API Section
 @router.get("/fire-m3hotspot-by-date")
 def api_hotspots_by_date(date: str):
     return get_hotspot_by_date(date=date)

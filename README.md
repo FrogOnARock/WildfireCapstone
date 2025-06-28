@@ -229,7 +229,7 @@ Query via FastAPI for the following:
 
 | Resource | Estimated Cost                                   | Billed To                 |
 |----------|--------------------------------------------------|---------------------------|
-| Google Cloud SQL (Postgres) | ~$40/month                                       | themackrock@outlook.com |
+| Google Cloud SQL (Postgres) | ~$70/month                                       | themackrock@outlook.com |
 | Cloud Run Services (if used) | Free given usage (could increase to ~$5-10/month | themackrock@outlook.com  |
 
 > Contact Mackenzie Rock for credit card and billing details

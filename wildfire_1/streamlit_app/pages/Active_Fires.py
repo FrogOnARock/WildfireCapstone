@@ -81,6 +81,8 @@ with st.sidebar:
     st.image(logo, width=100)
     st.markdown("**Canadian Wildfire Data**")
 
+
+#section to clear session data if moving between layer types
 fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', \
                   'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs', 'fire_data_add', 'fire_data_m3']
 page_data = 'fire_data_af'
@@ -110,7 +112,7 @@ elif query_type == "Get Active Fire by Name":
     fire_id_list = [f["firename"] for f in get_active_fire_firenames() if "firename" in f]
     params["fire_id"] = st.selectbox("Select Fire ID", options=fire_id_list, key="af_id")
 
-    # Buttons to run/clear
+# Buttons to run/clear
 if st.button("Run Query"):
     if query_type == "Get Active Fires":
         data = get_active_fires(str(params["min_date"]), str(params["max_date"]))
@@ -129,7 +131,7 @@ data = st.session_state.get("fire_data_af", None)
 if not data:
     st.stop()
 
-
+#assign data to a dataframe
 df = pd.DataFrame(data)
 
 features = []
@@ -157,12 +159,13 @@ for _, row in df.iterrows():
         }
         features.append(feature)
 
-
+#collect features in the form of geojson
 geojson = {
     "type": "FeatureCollection",
     "features": features
 }
 
+#set the config for this particular Kepler.gl map
 config = {
     "version": "v1",
     "config": {
@@ -218,9 +221,11 @@ config = {
         }
     }
 }
+#build the kepler map
 kepler_map = KeplerGl(data={"Active Fires": geojson})
-kepler_map.config = config
+kepler_map.config = config #assign the config
 
+#make html out of the kepler map to render
 with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
     kepler_map.save_to_html(file_name=tmpfile.name)
     tmpfile.seek(0)
@@ -229,6 +234,7 @@ with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
 
 components.html(html_content, height=700, width=1800, scrolling=True)
 
+#additional meta data in the form of a table
 st.markdown("---")
 st.subheader("Fire Details")
 
