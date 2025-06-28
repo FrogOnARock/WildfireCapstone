@@ -81,6 +81,7 @@ with st.sidebar:
     st.image(logo, width=100)
     st.markdown("**Canadian Wildfire Data**")
 
+#section to clear session data if moving between layer types
 fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', \
                   'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs', 'fire_data_add', 'fire_data_m3']
 page_data = 'fire_data_fd'
@@ -141,13 +142,13 @@ for row in data:
             "properties": properties
         })
 
+#collect data in the form of geojson
 geojson = {
     "type": "FeatureCollection",
     "features": features
 }
 
-
-
+#set the config for the map
 config = {
     "version": "v1",
     "config": {
@@ -213,9 +214,12 @@ config = {
     }
 }
 
+#create the kepler gl map
 kepler_map = KeplerGl(data={"Fire Danger": geojson})
 kepler_map.config = config
 
+
+#render the map utilizing HTML
 with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
     kepler_map.save_to_html(file_name=tmpfile.name)
     tmpfile.seek(0)

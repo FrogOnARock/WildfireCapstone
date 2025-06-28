@@ -82,6 +82,7 @@ with st.sidebar:
     st.image(logo, width=100)
     st.markdown("**Canadian Wildfire Data**")
 
+#section to clear session data if moving between layer types
 fire_data_list = ['fire_data_af', 'fire_data_fd', 'fire_data_h', 'fire_data_p', 'fire_data_fs', \
                   'fire_data_rws', 'fire_data_rwsf', 'fire_data_wcs', 'fire_data_add', 'fire_data_m3']
 page_data = 'fire_data_rws'
@@ -174,11 +175,13 @@ for _, row in df.iterrows():
         }
         features.append(feature)
 
+#collect the data in GeoJSON Format
 geojson = {
     "type": "FeatureCollection",
     "features": features
 }
 
+#set the config for this map
 config = {
     "version": "v1",
     "config": {
@@ -250,9 +253,12 @@ config = {
         }
     }
 }
+
+#create the kepler map
 kepler_map = KeplerGl(data={"Reporting Weather Stations": geojson})
 kepler_map.config = config
 
+#render the kepler map
 with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
     kepler_map.save_to_html(file_name=tmpfile.name)
     tmpfile.seek(0)
@@ -261,6 +267,7 @@ with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
 
 components.html(html_content, height=700, width=1800, scrolling=True)
 
+#additional meta data section
 st.markdown("---")
 st.subheader("Reporting Weather Station Observations")
 

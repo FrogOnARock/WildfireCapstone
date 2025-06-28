@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
+#required to have the frontend utilizing the session state
 DATABASE_URL = os.getenv("POSTGRES")  # Injected via Azure settings
 
 engine = create_engine(DATABASE_URL)

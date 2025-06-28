@@ -2,13 +2,14 @@ import streamlit as st
 from PIL import Image
 import os
 
-# Set page config early
+# Set page config
 st.set_page_config(page_title="Wildfire Dashboard", layout="wide")
 
 # Load logo
 logo_path = os.path.join(os.getcwd(), "wildfire_1", "streamlit_app", "logo", "Maple_Leaf.svg.png")
 logo = Image.open(logo_path)
 
+#Set the styling for the page (and the entire application)
 st.markdown("""
     <style>
     /* Default (Light mode) */
@@ -67,7 +68,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
+#Below we set up the main dashboard page including headers and page navigations
 # ---------- Header ----------
 col1, col2, col3 = st.columns([1, 5, 1])
 with col1:
